@@ -5,10 +5,12 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"proj/internal/store"
 	"proj/internal/user"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	_ "github.com/lib/pq"
 )
 
@@ -33,15 +35,25 @@ func main() {
 	}
 
 	r := chi.NewRouter()
+
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{"http://*"},
+		AllowCredentials: true,
+		MaxAge:           300,
+	}))
 	r.Use(middleware.Recoverer)
 
 	userRepo := user.UserRepository{DB: db}
+	storeRepo := store.StoreRepository{DB: db}
+
 	userService := user.UserService{UserRepo: userRepo}
+	storeService := store.StoreService{StoreRepo: storeRepo, UserRepo: userRepo}
 
 	r.Group(func(r chi.Router) {
 		r.Use(user.Auth)
 
-		r.Post("/user/ping", userService.Ping)
+		r.Get("/user/profile", userService.GetUser)
+		r.Get("/store/available-items", storeService.GetAvailableStoreItems)
 	})
 
 	r.Group(func(r chi.Router) {
