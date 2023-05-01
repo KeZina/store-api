@@ -2,30 +2,53 @@ package user
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type UserRepository struct {
 	DB *sql.DB
 }
 
-func (repo UserRepository) CheckIfUserExists(credentials Credentials) (bool, error) {
-	var isExists bool
+func (repo UserRepository) GetUserById(userId int) (User, error) {
+	var user User
 
-	query, err := repo.DB.Prepare("SELECT EXISTS(SELECT 1 FROM users WHERE name=$1 AND password=$2)")
+	query, err := repo.DB.Prepare(`
+		SELECT name FROM users
+		WHERE id=$1
+	`)
 	if err != nil {
-		fmt.Println(query, err.Error())
-		return false, err
+		return User{}, err
 	}
 
 	defer query.Close()
 
-	result := query.QueryRow(credentials.Name, credentials.Password)
+	row := query.QueryRow(userId)
 
-	err = result.Scan(&isExists)
+	err = row.Scan(&user)
 	if err != nil {
-		return false, err
+		return User{}, err
 	}
 
-	return isExists, nil
+	return user, nil
+}
+
+func (repo UserRepository) CheckUserCredentials(credentials Credentials) (int, error) {
+	var userId int
+
+	query, err := repo.DB.Prepare(`
+		SELECT id FROM users WHERE name=$1 AND password=$2
+	`)
+	if err != nil {
+		return 0, err
+	}
+
+	defer query.Close()
+
+	row := query.QueryRow(credentials.Name, credentials.Password)
+
+	err = row.Scan(&userId)
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }

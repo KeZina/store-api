@@ -5,7 +5,6 @@ import "github.com/golang-jwt/jwt/v5"
 type User struct {
 	Id   int    `json:"id" validate:"required,numeric"`
 	Name string `json:"name" validate:"required"`
-	Age  int    `json:"age" validate:"required,numeric"`
 }
 
 type Credentials struct {
@@ -14,6 +13,7 @@ type Credentials struct {
 }
 
 type Claims struct {
-	Username string `json:"username"`
+	UserName string `json:"userName"`
+	UserId   int    `json:"userId"`
 	jwt.RegisteredClaims
 }
