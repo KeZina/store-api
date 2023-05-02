@@ -8,6 +8,39 @@ type StoreRepository struct {
 	DB *sql.DB
 }
 
+func (repo StoreRepository) PurchaseStoreItem(userId int, storeItem StoreItem) error {
+	tx, err := repo.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(`
+		UPDATE users
+		SET currency=users.currency - $1
+		WHERE id=$2
+	`, storeItem.Price, userId)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = tx.Exec(`
+		INSERT INTO user_store_items (user_id, store_item_id)
+		VALUES ($1, $2)
+	`, userId, storeItem.Id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (repo StoreRepository) GetAvailableStoreItems(userId int) ([]StoreItem, error) {
 	var storeItems []StoreItem
 

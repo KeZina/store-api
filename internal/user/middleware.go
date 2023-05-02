@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"proj/helper"
 
@@ -25,7 +24,6 @@ func Auth(next http.Handler) http.Handler {
 			return []byte("secret"), nil //TODO keep secret in config
 		})
 		if err != nil || !token.Valid {
-			fmt.Println(err.Error())
 			helper.SendError(w, http.StatusBadRequest, "token is not valid")
 
 			return

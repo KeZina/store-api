@@ -3,8 +3,9 @@ package user
 import "github.com/golang-jwt/jwt/v5"
 
 type User struct {
-	Id   int    `json:"id" validate:"required,numeric"`
-	Name string `json:"name" validate:"required"`
+	Id       int    `json:"id" validate:"required,numeric"`
+	Name     string `json:"name" validate:"required"`
+	Currency int    `json:"currency" validate:"required,numeric"`
 }
 
 type Credentials struct {

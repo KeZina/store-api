@@ -25,6 +25,14 @@ func (service UserService) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	validate := validator.New()
+	err = validate.Struct(user)
+	if err != nil {
+		helper.SendError(w, http.StatusInternalServerError, "internal server error")
+
+		return
+	}
+
 	helper.SendJSON(w, http.StatusOK, user)
 }
 
@@ -87,6 +95,15 @@ func (service UserService) Login(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		Secure:   true,
 		HttpOnly: true,
+	})
+
+	helper.SendJSON(w, http.StatusOK, nil)
+}
+
+func (service UserService) Logout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Expires: time.Now(),
 	})
 
 	helper.SendJSON(w, http.StatusOK, nil)

@@ -47,17 +47,19 @@ func main() {
 	storeRepo := store.StoreRepository{DB: db}
 
 	userService := user.UserService{UserRepo: userRepo}
-	storeService := store.StoreService{StoreRepo: storeRepo, UserRepo: userRepo}
+	storeService := store.StoreService{StoreRepo: storeRepo}
 
 	r.Group(func(r chi.Router) {
 		r.Use(user.Auth)
 
 		r.Get("/user/profile", userService.GetUser)
 		r.Get("/store/available-items", storeService.GetAvailableStoreItems)
+		r.Post("/store/purchase", storeService.PurchaseStoreItem)
 	})
 
 	r.Group(func(r chi.Router) {
 		r.Post("/user/login", userService.Login)
+		r.Get("/user/logout", userService.Logout)
 	})
 
 	err = http.ListenAndServe(":"+port, r)

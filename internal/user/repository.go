@@ -12,7 +12,7 @@ func (repo UserRepository) GetUserById(userId int) (User, error) {
 	var user User
 
 	query, err := repo.DB.Prepare(`
-		SELECT name FROM users
+		SELECT id, name, currency FROM users
 		WHERE id=$1
 	`)
 	if err != nil {
@@ -23,7 +23,7 @@ func (repo UserRepository) GetUserById(userId int) (User, error) {
 
 	row := query.QueryRow(userId)
 
-	err = row.Scan(&user)
+	err = row.Scan(&user.Id, &user.Name, &user.Currency)
 	if err != nil {
 		return User{}, err
 	}
