@@ -41,6 +41,58 @@ func (repo StoreRepository) PurchaseStoreItem(userId int, storeItem StoreItem) e
 	return nil
 }
 
+func (repo StoreRepository) DeleteUserStoreItem(userId int, storeItemId int) error {
+	query, err := repo.DB.Prepare(`
+		DELETE FROM user_store_items
+		WHERE user_id=$1 AND store_item_id=$2
+	`)
+	if err != nil {
+		return err
+	}
+
+	defer query.Close()
+
+	_, err = query.Exec(userId, storeItemId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repo StoreRepository) GetUserStoreItems(userId int) ([]StoreItem, error) {
+	var storeItems []StoreItem
+
+	query, err := repo.DB.Prepare(`
+		SELECT i.id, i.title, i.price FROM store_items i 
+		WHERE i.id IN (
+			SELECT store_item_id FROM user_store_items WHERE user_id=$1
+		)
+	`)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	rows, err := query.Query(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var storeItem StoreItem
+
+		if err := rows.Scan(&storeItem.Id, &storeItem.Title, &storeItem.Price); err != nil {
+			return nil, err
+		}
+
+		storeItems = append(storeItems, storeItem)
+	}
+
+	return storeItems, nil
+}
+
 func (repo StoreRepository) GetAvailableStoreItems(userId int) ([]StoreItem, error) {
 	var storeItems []StoreItem
 

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"proj/helper"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -41,6 +42,47 @@ func (service StoreService) PurchaseStoreItem(w http.ResponseWriter, r *http.Req
 	helper.SendJSON(w, http.StatusOK, nil)
 }
 
+func (service StoreService) DeleteUserStoreItem(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value("userId").(int)
+	storeItemId, err := strconv.Atoi(r.URL.Query().Get("storeItemId"))
+	if err != nil {
+		helper.SendError(w, http.StatusBadRequest, "bad request")
+
+		return
+	}
+
+	err = service.StoreRepo.DeleteUserStoreItem(userId, storeItemId)
+	if err != nil {
+		helper.SendError(w, http.StatusInternalServerError, "internal server error")
+	}
+
+	helper.SendJSON(w, http.StatusOK, nil)
+}
+
+func (service StoreService) GetUserStoreItems(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value("userId").(int)
+
+	storeItems, err := service.StoreRepo.GetUserStoreItems(userId)
+	if err != nil {
+		helper.SendError(w, http.StatusInternalServerError, "internal server error")
+
+		return
+	}
+
+	validate := validator.New()
+
+	for _, storeItem := range storeItems {
+		err = validate.Struct(storeItem)
+		if err != nil {
+			helper.SendError(w, http.StatusInternalServerError, "internal server error")
+
+			return
+		}
+	}
+
+	helper.SendJSON(w, http.StatusOK, storeItems)
+}
+
 func (service StoreService) GetAvailableStoreItems(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value("userId").(int)
 
@@ -49,6 +91,17 @@ func (service StoreService) GetAvailableStoreItems(w http.ResponseWriter, r *htt
 		helper.SendError(w, http.StatusInternalServerError, "internal server error")
 
 		return
+	}
+
+	validate := validator.New()
+
+	for _, storeItem := range storeItems {
+		err = validate.Struct(storeItem)
+		if err != nil {
+			helper.SendError(w, http.StatusInternalServerError, "internal server error")
+
+			return
+		}
 	}
 
 	helper.SendJSON(w, http.StatusOK, storeItems)
