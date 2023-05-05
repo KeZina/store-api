@@ -38,6 +38,7 @@ func main() {
 
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://*"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
@@ -52,14 +53,17 @@ func main() {
 	r.Group(func(r chi.Router) {
 		r.Use(user.Auth)
 
-		r.Get("/user/profile", userService.GetUser)
+		r.Get("/users/profile", userService.GetUser)
+
+		r.Get("/store/users/items", storeService.GetUserStoreItems)
+		r.Delete("/store/users/items", storeService.DeleteUserStoreItem)
 		r.Get("/store/available-items", storeService.GetAvailableStoreItems)
 		r.Post("/store/purchase", storeService.PurchaseStoreItem)
 	})
 
 	r.Group(func(r chi.Router) {
-		r.Post("/user/login", userService.Login)
-		r.Get("/user/logout", userService.Logout)
+		r.Post("/users/login", userService.Login)
+		r.Get("/users/logout", userService.Logout)
 	})
 
 	err = http.ListenAndServe(":"+port, r)
