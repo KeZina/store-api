@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"os"
 	"proj/helper"
 	"time"
 
@@ -79,7 +80,7 @@ func (service UserService) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte("secret")) //TODO keep secret in config
+	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET"))) //TODO keep secret in config
 
 	if err != nil {
 		helper.SendError(w, http.StatusInternalServerError, "internal server error")

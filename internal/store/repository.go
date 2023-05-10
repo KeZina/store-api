@@ -61,7 +61,7 @@ func (repo StoreRepository) DeleteUserStoreItem(userId int, storeItemId int) err
 }
 
 func (repo StoreRepository) GetUserStoreItems(userId int) ([]StoreItem, error) {
-	var storeItems []StoreItem
+	storeItems := []StoreItem{}
 
 	query, err := repo.DB.Prepare(`
 		SELECT i.id, i.title, i.price FROM store_items i 
@@ -93,14 +93,16 @@ func (repo StoreRepository) GetUserStoreItems(userId int) ([]StoreItem, error) {
 	return storeItems, nil
 }
 
-func (repo StoreRepository) GetAvailableStoreItems(userId int) ([]StoreItem, error) {
-	var storeItems []StoreItem
+func (repo StoreRepository) GetAvailableStoreItems(userId int, page int, limit int) ([]StoreItem, error) {
+	storeItems := []StoreItem{}
 
 	query, err := repo.DB.Prepare(`
 		SELECT i.id, i.title, i.price FROM store_items i 
 		WHERE i.id NOT IN (
 			SELECT store_item_id FROM user_store_items WHERE user_id=$1
 		)
+		ORDER BY i.id
+		LIMIT $2 OFFSET $3
 	`)
 	if err != nil {
 		return nil, err
@@ -108,7 +110,7 @@ func (repo StoreRepository) GetAvailableStoreItems(userId int) ([]StoreItem, err
 
 	defer query.Close()
 
-	rows, err := query.Query(userId)
+	rows, err := query.Query(userId, limit, page*limit)
 	if err != nil {
 		return nil, err
 	}

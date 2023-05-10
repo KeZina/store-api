@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"net/http"
+	"os"
 	"proj/helper"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -21,7 +22,7 @@ func Auth(next http.Handler) http.Handler {
 		claims := &Claims{}
 
 		token, err := jwt.ParseWithClaims(cookieToken.Value, claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte("secret"), nil //TODO keep secret in config
+			return []byte(os.Getenv("JWT_SECRET")), nil //TODO keep secret in config
 		})
 		if err != nil || !token.Valid {
 			helper.SendError(w, http.StatusBadRequest, "token is not valid")

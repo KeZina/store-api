@@ -2,6 +2,7 @@ package store
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"proj/helper"
 	"strconv"
@@ -86,8 +87,23 @@ func (service StoreService) GetUserStoreItems(w http.ResponseWriter, r *http.Req
 func (service StoreService) GetAvailableStoreItems(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value("userId").(int)
 
-	storeItems, err := service.StoreRepo.GetAvailableStoreItems(userId)
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
 	if err != nil {
+		helper.SendError(w, http.StatusBadRequest, "bad request")
+
+		return
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+	if err != nil {
+		helper.SendError(w, http.StatusBadRequest, "bad request")
+
+		return
+	}
+
+	storeItems, err := service.StoreRepo.GetAvailableStoreItems(userId, page, limit)
+	if err != nil {
+		fmt.Println(err)
 		helper.SendError(w, http.StatusInternalServerError, "internal server error")
 
 		return
